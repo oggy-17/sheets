@@ -1,0 +1,254 @@
+Magento URL Redirect issue:
+https://amasty.com/knowledge-base/magento-2-admin-url.html
+
+Admin Panel Redirect Issue fix:
+bin/magento config:set web/secure/use_in_adminhtml 1
+then,
+bin/magento cache:clean
+
+Running any command on magento cli add this in first:
+bin/magento <command>
+
+Cache Flush:
+bin/magento cache:flush
+
+Set URL and Secure-URL:
+bin/magento setup:store-config:set --base-url="http://domain/"
+bin/magento setup:store-config:set --base-url-secure="https://domain/"
+
+Change URL from Backend/Admin Panel of Magento:
+Change the Base URL via the Magento Backend
+1. Login to your Magento Backend
+2. In the top navigation bar, select System > Configuration
+3. In the menu on the left, select General > Web
+4. Open the Secure and Unsecure sections from the dropdown
+5. Now set the Base URL you wish to use for your shop and click on Save Config. Also contains Base Secure URL. Request Screenshot to check further settings.
+6. After setting your Base URL you have to flush your Magento caches by going to System > Cache Management and click Flush Cache Storage.
+
+
+SMTP SPAM:
+https://help.nexcess.net/magento/456005-how-to-set-up-outgoing-smtp-email-for-magento
+
+Configure Elastic Email or SMTP settings.
+
+Add-User:
+https://www.mageplaza.com/kb/how-to-create-new-admin-user-magento-2.html#create-admin-account-via-command-line
+
+Reindex Magento:
+bin/magento indexer:reindex
+
+Error:
+var/session not found.
+Create a folder in public_html/var named as session
+
+
+Site not pushing to production giving compilation error:
+https://magento.stackexchange.com/questions/290887/magento-2-3-2-production-mode-not-working
+
+Staging Site Admin Panel Sub-menu not working(Magento 1):
+Need to clear m1 cache after changing cdn url along with that previous cached files need to be removed from var/cache/
+the command the is used to clear m1 cache is different than m2.
+php -r 'require "app/Mage.php"; Mage::app()->getCacheInstance()->flush();'
+need to run this from inside public_html folder
+
+
+Check the symlinks and fix broken ones if page gives 403 error and keeps on loading.
+
+
+If while enabling SSH Access for Magento get message about symbolic link run this command:
+find . -type l ! -exec test -e {} \; -print
+
+If showing maintenance page then check for file:
+maintenance.flag in public_html. Rename it.
+
+For Magento Multistore:
+Make sure the .htaccess file of the pub folder has this defined:
+SetEnvIf Host www\.domain2\.com MAGE_RUN_CODE=storecode1
+SetEnvIf Host www\.domain\.com MAGE_RUN_CODE=storecode2
+
+Magento Multistore:
+https://www.cloudways.com/blog/magento-2-multistore-configuration/
+
+
+#Magento Sheet:
+
+#For search and replace in database file of magento
+sed -i 's/`root`@`localhost`/`dbName`@`%`/g' file.sql
+
+#Difference between Magento 1 and 2
+env.php Magento 2
+local.xml for Magento 1
+
+"Magento 2.x"
+
+#Cache Clearning
+php bin/magento cache:clean
+php bin/magento cache:flush
+
+#For Indexing
+php bin/magento indexer:reindex
+
+#Static Content Deploying
+php bin/magento setup:static-content:deploy
+php bin/magento setup:static-content:deploy -f
+
+#For Creating Magento New User:
+bin/magento admin:user:create --admin-user="cloudways" --admin-password="cloudways@123" --admin-email="platformops@cloudways.com" --admin-firstname="cloudways" --admin-lastname="cloudways"
+
+#For running magento cron
+bin/magento cron:run
+bin/magento cron:run --group index
+bin/magento cron:run --group default
+
+#For disabling Captcha
+php bin/magento config:set admin/captcha/enable 0
+#For disabling captcha through MySQL query
+Update core_config_data set value=0 WHERE path LIKE '%admin/captcha/enable%'
+#For Disabling Google Recaptcha:
+php bin/magento msp:security:recaptcha:disable
+
+#For Unlocking Admin User
+php bin/magento admin:user:unlock admin
+
+#Add this line in index.php file and it will show real ip's
+$_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_X_REAL_IP'];
+
+#For changing php mimetype 
+php_value[default_mimetype] = application/json
+
+#Magento configuration file
+"Configuration must need to be check after migration"
+main env.php
+
+#Restting Passowrd from MySQL
+UPDATE admin_user SET password = CONCAT(SHA2('xxxxxxxxNewPassword', 256), ':xxxxxxxx:1') WHERE username = 'admin';
+
+"(The xxxxxxx character sequence is a cryptographic salt, it is saved in app\etc\env.php file)"
+<?php
+return array (
+  ...
+  'crypt' => 
+  array (
+    'key' => '525701df74e6cba74d5e9a1bb3d935ad', //cryptographic salt
+  ),
+
+
+#For resetting permissions of Magento 2
+find . -type d -print0 | xargs -0 chmod 0775
+find . -type f -print0 | xargs -0 chmod 0664
+find ./var -type d -exec chmod 777 {} \;   
+chmod -R 777 var/             
+find ./pub/media -type d -exec chmod 777 {} \;
+find ./pub/static -type d -exec chmod 777 {} \;
+chmod -R 777 pub/
+chmod 777 ./app/etc
+chmod 644 ./app/etc/*.xml
+chmod u+x bin/magento
+
+#CORS Header Rule for Apache
+Header set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept"
+Header add Access-Control-Allow-Origin "*"
+
+#Or
+
+<FilesMatch "\.(ttf|json|html|otf|eot|woff|woff2)$">
+  <IfModule mod_headers.c>
+    Header set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept"
+    Header add Access-Control-Allow-Origin "*"
+  </IfModule>
+</FilesMatch>
+
+#or
+
+<IfModule mod_rewrite.c>
+  Header add Access-Control-Allow-Origin: "*"
+  Header add Access-Control-Allow-Methods: "GET,POST,OPTIONS,DELETE,PUT"
+  Header add Access-Control-Allow-Headers: "Content-Type" 
+  RewriteEngine on
+  RewriteBase /
+</IfModule>
+
+(In case if error is arising from "pub/static", add rule in .htaccess file of directory "pub")
+
+
+"Magento 1.x"
+
+#Cache Clearning
+php -r 'require "app/Mage.php"; Mage::app()->getCacheInstance()->flush();'
+
+#For Indexing
+php shell/indexer.php --status
+php shell/indexer.php --reindexall
+
+#Configuration checking after Magento migration
+main local.xml
+
+#Restting Passowrd from MySQL
+UPDATE `admin_user` SET `password` = MD5('mypassword') WHERE `username` = 'admin';
+
+
+
+#Debugging for Error
+"In case of Following Error"
+Call to undefined function xdebug_disable()
+Run this:
+composer remove magento/magento2-functional-testing-framework
+
+In case of too much load over server from running crons, increase interval time of cron
+
+#For the installation of mailchimp through composer.
+composer require mailchimp/mc-magento2
+
+#For CDN integration in Magento add the CDN URL as below:
+Secure Base URL for Static View Files: https://565172-1822063-1-raikfcquaxqncofqfm.stackpathdns.com/static
+Secure Base URL for User Media Files: https://565172-1822063-1-raikfcquaxqncofqfm.stackpathdns.com/media
+Then deploy static content with command: php bin/magento s:s:d -f
+
+#Magento 503 Errors:
+Go to the Magento root folder to delete the file var/.maintenance.flag
+Refresh Magento 2 cache from php bin/magento cache:flush or via the Admin Panel
+
+
+#Magento Invalid Form Key Error:
+In DB:	DELETE FROM core_config_data WHERE path='web/cookie/cookie_domain';
+	DELETE FROM core_config_data WHERE path='web/cookie/cookie_path';
+Then check your /app/etc/local.xml and edit and add this:
+							<session_save><![CDATA[files]]></session_save>
+							<session_save_path><![CDATA[/tmp/session]]></session_save_path>
+
+
+#Slow indexing so MariaDB 10.4 optimization for Magento:
+https://devdocs.magento.com/guides/v2.4/performance-best-practices/configuration.html
+
+#Configuring Redis in Magento:
+php bin/magento setup:config:set --cache-backend=redis --cache-backend-redis-server=127.0.0.1 --cache-backend-redis-db=4
+php bin/magento setup:config:set --page-cache=redis --page-cache-redis-server=127.0.0.1 --page-cache-redis-db=3
+
+#Catalog Images not showing error:
+https://magento.stackexchange.com/questions/175224/regenerate-catalog-cache-images-issues
+
+#Configure Elastic Search directly from CLI Magento 2:
+php bin/magento config:show catalog/search/engine
+curl 127.0.0.1:9200
+php bin/magento config:show catalog/search/engine
+php bin/magento config:set catalog/search/engine elasticsearch7
+php bin/magento config:set catalog/search/elasticsearch7_server_hostname localhost
+php bin/magento config:set catalog/search/elasticsearch7_server_port 9200
+php bin/magento config:show catalog/search/engine
+
+
+#Session Timed Out error Magento Admin:
+INSERT INTO `core_config_data` (`scope`, `scope_id`, `path`, `value`) VALUES ('default', 0, 'admin/security/session_lifetime', '86400');
+
+#If there is issue that elasticsearch causes mixing of data between two sites or after indexing site works and after that is doesnt:
+1. Check for Multiple magento installs.
+2. to check search engine
+php bin/magento config:show catalog/search/engine
+3. to check index prefix (for ES7)
+php bin/magento config:show catalog/search/elasticsearch7_index_prefix
+4. if prefix is same for multiple M2 installs on the same server, change it to something unique,
+php bin/magento config:set catalog/search/elasticsearch7_index_prefix "<prefix>"
+
+
+#Error Interceptor File not found need to recreate the file using:
+php bin/magento setup:di:compile
